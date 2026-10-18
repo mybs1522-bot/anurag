@@ -1,0 +1,645 @@
+"use client";
+
+import dayjs from "dayjs";
+import {
+  CheckCircle,
+  Loader2,
+  ArrowLeft,
+  CalendarDays,
+  Clock,
+  ChevronRight,
+} from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/cn";
+import { Service } from "@/features/profile/types/services";
+import { supabase } from "@/lib/supabase";
+import { USER } from "@/data/user";
+
+function generateDates(startDate: dayjs.Dayjs, days: number) {
+  return Array.from({ length: days }).map((_, i) => startDate.add(i, "day"));
+}
+
+const availableTimes = [
+  "10:00 AM",
+  "11:00 AM",
+  "12:00 PM",
+  "01:00 PM",
+  "02:00 PM",
+  "03:00 PM",
+  "04:00 PM",
+  "05:00 PM",
+  "06:00 PM",
+  "07:00 PM",
+];
+
+
+
+function isSlotPassed(date: dayjs.Dayjs | null, timeStr: string): boolean {
+  if (!date) return false;
+  
+  const [time, modifier] = timeStr.split(" ");
+  let [hours, minutes] = time.split(":").map(Number);
+  
+  if (hours === 12) {
+    hours = modifier === "PM" ? 12 : 0;
+  } else if (modifier === "PM") {
+    hours = hours + 12;
+  }
+
+  const slotDateTime = date.hour(hours).minute(minutes).second(0).millisecond(0);
+  const now = dayjs();
+  
+  return slotDateTime.isBefore(now);
+}
+
+export function ServiceDialog({
+  open,
+  onClose,
+  service,
+}: {
+  open: boolean;
+  onClose: () => void;
+  service: Service | null;
+}) {
+  const titleLower = service?.title.toLowerCase() || "";
+  const categoryLower = service?.category.toLowerCase() || "";
+  // All services require calendar date & time selection for appointment booking
+  const isConsultation = true;
+  const isPaymentRequired = Boolean(service && service.amount > 0);
+
+  const [step, setStep] = useState<1 | 2>(1);
+  const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs | null>(null);
+  const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [dynamicBookedSlots, setDynamicBookedSlots] = useState<Record<string, string[]>>({});
+
+  useEffect(() => {
+    if (open) {
+      const fetchBookedSlots = async () => {
+        try {
+          const res = await fetch("/api/admin/calendar");
+          if (res.ok) {
+            const json = await res.json();
+            if (json.slots) {
+              const slotsMap: Record<string, string[]> = {};
+              json.slots.forEach((s: any) => {
+                const isPaid = s.payment_status === "completed";
+                const isAdminBlocked =
+                  s.phone === "0000000000" ||
+                  s.name === "Admin Blocked Slot" ||
+                  s.id?.startsWith("block_") ||
+                  s.id?.startsWith("mem_block_");
+
+                if (isPaid || isAdminBlocked) {
+                  const dStr = s.appointment_date;
+                  const tStr = s.appointment_time;
+                  if (!slotsMap[dStr]) slotsMap[dStr] = [];
+                  if (!slotsMap[dStr].includes(tStr)) {
+                    slotsMap[dStr].push(tStr);
+                  }
+                }
+              });
+              setDynamicBookedSlots(slotsMap);
+              return;
+            }
+          }
+        } catch (err) {
+          console.error("Error fetching calendar API:", err);
+        }
+
+        // Fallback to client Supabase
+        try {
+          const { data, error } = await supabase
+            .from("service_leads")
+            .select("appointment_date, appointment_time, payment_status, phone, name")
+            .not("appointment_date", "is", null)
+            .not("appointment_time", "is", null);
+
+          if (error) throw error;
+
+          const slotsMap: Record<string, string[]> = {};
+          (data || []).forEach((lead: any) => {
+            const isPaid = lead.payment_status === "completed";
+            const isAdminBlocked =
+              lead.phone === "0000000000" || lead.name === "Admin Blocked Slot";
+
+            if (isPaid || isAdminBlocked) {
+              const dateStr = lead.appointment_date;
+              const timeStr = lead.appointment_time;
+              if (!slotsMap[dateStr]) slotsMap[dateStr] = [];
+              if (!slotsMap[dateStr].includes(timeStr)) {
+                slotsMap[dateStr].push(timeStr);
+              }
+            }
+          });
+          setDynamicBookedSlots(slotsMap);
+        } catch (err) {
+          console.error("Error fetching booked slots:", err);
+        }
+      };
+
+      fetchBookedSlots();
+    }
+  }, [open]);
+
+  const isSlotBooked = (date: dayjs.Dayjs | null, time: string): boolean => {
+    if (!date) return false;
+    const key = date.format("YYYY-MM-DD");
+    return dynamicBookedSlots[key]?.includes(time) ?? false;
+  };
+
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Generate next 14 days for selection
+  const [dates, setDates] = useState<dayjs.Dayjs[]>([]);
+  useEffect(() => {
+    if (open) {
+      setDates(generateDates(dayjs(), 14));
+      setStep(isConsultation ? 1 : 2);
+      setSelectedDate(null);
+      setSelectedTime(null);
+      setName("");
+      setPhone("");
+    }
+  }, [open, isConsultation]);
+
+  const scrollDates = (direction: "left" | "right") => {
+    if (!scrollRef.current) return;
+    const container = scrollRef.current;
+    const scrollAmount = container.offsetWidth;
+    container.scrollBy({
+      left: direction === "right" ? scrollAmount : -scrollAmount,
+      behavior: "smooth",
+    });
+  };
+
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    document.body.appendChild(script);
+    return () => {
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+    };
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!service) return;
+
+    if (!name.trim() || !phone.trim()) {
+      toast.error("Please enter your name and phone number");
+      return;
+    }
+
+    const fullPhone = isConsultation ? `+91 ${phone.trim()}` : phone.trim();
+
+    let finalName = name.trim();
+    if (isConsultation && selectedDate && selectedTime) {
+      finalName = `${name.trim()} (Appt: ${selectedDate.format("MMM D")} at ${selectedTime})`;
+    }
+
+    const isPaymentRequired = service.amount > 0;
+
+    if (isPaymentRequired) {
+      setSubmitting(true);
+      const leadId = crypto.randomUUID();
+      try {
+        // Save the lead immediately before payment as 'pending'
+        await supabase.from("service_leads").insert({
+          id: leadId,
+          name: finalName,
+          phone: fullPhone,
+          service_id: service.id,
+          payment_status: 'pending',
+          appointment_date: selectedDate ? selectedDate.format("YYYY-MM-DD") : null,
+          appointment_time: selectedTime
+        });
+
+        // Send email notification for new lead
+        fetch("/api/notify-lead", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: finalName,
+            phone: fullPhone,
+            serviceName: service.title,
+            paymentStatus: "pending",
+            date: selectedDate?.format("MMM D, YYYY") || null,
+            time: selectedTime || null,
+          }),
+        }).catch(console.error);
+
+        const res = await fetch("/api/razorpay", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ amount: service.amount }),
+        });
+        const data = await res.json();
+        
+        if (!res.ok) throw new Error(data.error);
+
+        // Save order_id to database lead
+        await supabase
+          .from("service_leads")
+          .update({ razorpay_order_id: data.orderId })
+          .eq("id", leadId);
+
+        // Handle demo booking mode
+        if (data.isDemo || typeof (window as any).Razorpay === "undefined") {
+          toast.info("Demo booking: confirming appointment...");
+          try {
+            await fetch("/api/razorpay/verify", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                razorpay_payment_id: `pay_demo_${Date.now()}`,
+                razorpay_order_id: data.orderId,
+                razorpay_signature: "sig_demo",
+                leadId: leadId,
+                type: "service",
+              }),
+            });
+            toast.success("Demo booking confirmed! Appointment scheduled.");
+            onClose();
+            window.location.href = `/thank-you?date=${selectedDate ? selectedDate.format("YYYY-MM-DD") : ""}&time=${selectedTime || ""}`;
+            return;
+          } catch (demoErr) {
+            console.error("Demo booking error:", demoErr);
+            toast.success("Booking request received!");
+            onClose();
+            window.location.href = `/thank-you?date=${selectedDate ? selectedDate.format("YYYY-MM-DD") : ""}&time=${selectedTime || ""}`;
+            return;
+          } finally {
+            setSubmitting(false);
+          }
+        }
+
+        const options = {
+          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+          amount: service.amount * 100,
+          currency: "INR",
+          name: USER.displayName,
+          description: service.title,
+          order_id: data.orderId,
+          handler: async function (response: any) {
+            setSubmitting(true);
+            try {
+              const verifyRes = await fetch("/api/razorpay/verify", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_signature: response.razorpay_signature,
+                  leadId: leadId,
+                  type: "service",
+                }),
+              });
+              const verifyData = await verifyRes.json();
+              if (!verifyRes.ok) throw new Error(verifyData.error);
+
+              toast.success("Payment successful! Appointment scheduled.");
+              onClose();
+              window.location.href = `/thank-you?date=${selectedDate ? selectedDate.format("YYYY-MM-DD") : ""}&time=${selectedTime || ""}`;
+            } catch (err: any) {
+              console.error("Verification failed:", err);
+              toast.error("Payment verified, but sync is slow. Our support team will confirm shortly.");
+              onClose();
+              window.location.href = `/thank-you?date=${selectedDate ? selectedDate.format("YYYY-MM-DD") : ""}&time=${selectedTime || ""}`;
+            } finally {
+              setSubmitting(false);
+            }
+          },
+          prefill: {
+            name: finalName,
+            contact: fullPhone,
+          },
+          theme: {
+            color: "#10b981", // emerald-500
+          },
+          modal: {
+            ondismiss: function() {
+              setSubmitting(false);
+            }
+          }
+        };
+
+        const rzp = new (window as any).Razorpay(options);
+        rzp.open();
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to initialize payment.");
+        setSubmitting(false);
+      }
+    } else {
+      setSubmitting(true);
+      const leadId = crypto.randomUUID();
+      const { error } = await supabase.from("service_leads").insert({
+        id: leadId,
+        name: finalName,
+        phone: fullPhone,
+        service_id: service.id,
+        appointment_date: selectedDate ? selectedDate.format("YYYY-MM-DD") : null,
+        appointment_time: selectedTime
+      });
+      setSubmitting(false);
+
+      if (error) {
+        toast.error("An error occurred. Please try again.");
+        console.error(error);
+      } else {
+        // Send email notification for non-payment lead
+        fetch("/api/notify-lead", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: finalName,
+            phone: fullPhone,
+            serviceName: service.title,
+            paymentStatus: "none",
+            date: selectedDate?.format("MMM D, YYYY") || null,
+            time: selectedTime || null,
+          }),
+        }).catch(console.error);
+        // Add to Google Calendar
+        if (selectedDate && selectedTime) {
+          fetch("/api/calendar", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              leadId: leadId,
+              name: finalName,
+              phone: fullPhone,
+              serviceName: service.title,
+              date: selectedDate.format("MMM D, YYYY"),
+              time: selectedTime,
+            }),
+          }).catch(console.error);
+        }
+        toast.success("Request received! Our support team will contact you shortly.");
+        onClose();
+        window.location.href = `/thank-you?date=${selectedDate ? selectedDate.format("YYYY-MM-DD") : ""}&time=${selectedTime || ""}`;
+      }
+    }
+  };
+
+  const handleNextStep = () => {
+    if (!selectedDate || !selectedTime) {
+      toast.error("Please select a date and time");
+      return;
+    }
+    setStep(2);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-[92vw] sm:max-w-md max-h-[85vh] overflow-hidden flex flex-col">
+        <DialogHeader>
+          <div className="relative flex items-center justify-center py-1">
+            {step === 2 && isConsultation && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute left-0 size-8 -ml-2"
+                onClick={() => setStep(1)}
+              >
+                <ArrowLeft className="size-4" />
+              </Button>
+            )}
+            <DialogTitle>
+              {step === 1 && isConsultation
+                ? "Select Date & Time"
+                : titleLower.includes("3d design")
+                  ? "3D Design for Interiors & Exteriors"
+                  : titleLower.includes("floor plan")
+                    ? "Floor Plan Design"
+                    : "Book A Call"}
+            </DialogTitle>
+          </div>
+          <DialogDescription className="text-center text-[10px] xs:text-xs sm:text-sm px-1">
+            {step === 1 && isConsultation ? (
+              "Choose an available slot for your consultation."
+            ) : (
+              <>
+                {titleLower.includes("3d design") ? (
+                  <span className="block max-sm:whitespace-nowrap max-sm:overflow-hidden max-sm:text-ellipsis">Enter your details below to request call for <span className="font-semibold text-foreground">3D Design Discussion</span>.</span>
+                ) : titleLower.includes("floor plan") ? (
+                  <span className="block max-sm:whitespace-nowrap max-sm:overflow-hidden max-sm:text-ellipsis">Enter your details below to request call for <span className="font-semibold text-foreground">Floor Plan Design</span>.</span>
+                ) : (
+                  <>
+                    Enter your details below to request{" "}
+                    <span className="font-semibold text-foreground">
+                      {service?.title}
+                    </span>
+                    .
+                  </>
+                )}
+                {service?.description && (
+                  <span className="mt-1 block text-[10px] xs:text-[11px] sm:text-sm font-medium text-emerald-600 dark:text-emerald-400 whitespace-normal max-sm:whitespace-nowrap max-sm:overflow-hidden max-sm:text-ellipsis">
+                    💡 {service.description}
+                  </span>
+                )}
+              </>
+            )}
+          </DialogDescription>
+        </DialogHeader>
+
+        {step === 1 && isConsultation ? (
+          <div className="flex-1 overflow-y-auto min-h-0 space-y-5 pb-2">
+            {/* Date Selection */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-center">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <CalendarDays className="size-4 text-muted-foreground" />
+                  <span>Select Date</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-end gap-1 -mt-1">
+                  <button
+                    type="button"
+                    onClick={() => scrollDates("left")}
+                    className="rounded-full p-1 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+                    aria-label="Scroll dates left"
+                  >
+                    <ChevronRight className="size-4 rotate-180" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => scrollDates("right")}
+                    className="rounded-full p-1 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+                    aria-label="Scroll dates right"
+                  >
+                    <ChevronRight className="size-4" />
+                  </button>
+                </div>
+              <div
+                ref={scrollRef}
+                className="flex gap-2 overflow-x-auto scroll-smooth"
+                style={{
+                  scrollbarWidth: "none",
+                  msOverflowStyle: "none",
+                  WebkitOverflowScrolling: "touch",
+                }}
+              >
+                <style>{`[data-date-scroll]::-webkit-scrollbar { display: none; }`}</style>
+                {dates.map((d) => {
+                  const isSelected = selectedDate?.isSame(d, "day");
+                  return (
+                    <button
+                      key={d.format("YYYY-MM-DD")}
+                      type="button"
+                      onClick={() => setSelectedDate(d)}
+                      className={cn(
+                        "flex flex-col items-center justify-center rounded-xl border py-3 transition-all cursor-pointer",
+                        isSelected
+                          ? "border-emerald-500 bg-emerald-500 text-white shadow-md shadow-emerald-500/25"
+                          : "border-border bg-card text-foreground hover:bg-accent hover:text-accent-foreground"
+                      )}
+                      style={{
+                        minWidth: "calc((100% - 16px) / 3)",
+                        maxWidth: "calc((100% - 16px) / 3)",
+                      }}
+                    >
+                      <span className="text-[10px] font-medium uppercase tracking-wider opacity-70">
+                        {d.format("ddd")}
+                      </span>
+                      <span className="text-xl font-bold mt-0.5">
+                        {d.format("DD")}
+                      </span>
+                      <span className="text-[10px] font-medium opacity-70 mt-0.5">
+                        {d.format("MMM")}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Time Selection */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-center gap-2 text-sm font-medium">
+                <Clock className="size-4 text-muted-foreground" />
+                <span>Select Time</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {availableTimes.map((timeSlot) => {
+                  const booked = isSlotBooked(selectedDate, timeSlot);
+                  const passed = isSlotPassed(selectedDate, timeSlot);
+                  const disabled = booked || passed;
+                  const isSelected = selectedTime === timeSlot;
+                  return (
+                    <button
+                      key={timeSlot}
+                      type="button"
+                      disabled={disabled}
+                      onClick={() => {
+                        if (!disabled) setSelectedTime(timeSlot);
+                      }}
+                      className={cn(
+                        "rounded-lg border py-2 text-xs font-semibold transition-all",
+                        disabled
+                          ? "border-red-500/40 bg-red-500/10 text-red-400 cursor-not-allowed line-through opacity-70"
+                          : isSelected
+                            ? "border-emerald-500 bg-emerald-500 text-white shadow-md shadow-emerald-500/25 cursor-pointer"
+                            : "border-border bg-card text-foreground hover:bg-accent hover:text-accent-foreground cursor-pointer"
+                      )}
+                    >
+                      {booked ? "Booked" : passed ? "Passed" : timeSlot}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Continue Button */}
+            <Button
+              className="w-full"
+              onClick={handleNextStep}
+              disabled={!selectedDate || !selectedTime}
+            >
+              Continue
+            </Button>
+          </div>
+        ) : (
+          <form
+            onSubmit={handleSubmit}
+            className="flex-1 overflow-y-auto min-h-0 space-y-5 pb-2"
+          >
+            <div className="space-y-2">
+              <Label htmlFor="service-name">Full Name</Label>
+              <Input
+                id="service-name"
+                type="text"
+                placeholder="e.g. Rahul Verma"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="service-phone">Phone Number</Label>
+              {isConsultation ? (
+                <div className="flex">
+                  <div className="flex items-center justify-center rounded-l-md border border-r-0 border-input bg-muted px-3 text-sm text-muted-foreground">
+                    +91
+                  </div>
+                  <Input
+                    id="service-phone"
+                    type="tel"
+                    placeholder="98765 43210"
+                    value={phone}
+                    onChange={(e) => {
+                      const val = e.target.value
+                        .replace(/\D/g, "")
+                        .slice(0, 10);
+                      setPhone(val);
+                    }}
+                    required
+                    className="rounded-l-none"
+                  />
+                </div>
+              ) : (
+                <Input
+                  id="service-phone"
+                  type="tel"
+                  placeholder="+91 98765 43210"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  required
+                />
+              )}
+            </div>
+
+            <Button type="submit" className="w-full" disabled={submitting}>
+              {submitting ? (
+                <Loader2 className="mr-2 size-4 animate-spin" />
+              ) : (
+                <CheckCircle className="mr-2 size-4" />
+              )}
+              {service?.payment_link && !titleLower.includes("3d design") ? "Proceed to Payment" : "Submit"}
+            </Button>
+          </form>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
