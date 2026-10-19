@@ -6,8 +6,6 @@ import { FlipSentences } from "@/registry/flip-sentences";
 
 import { ChanhDaiAvatar } from "./chanhdai-avatar";
 import { ChanhDaiCoverHello } from "./chanhdai-cover-hello";
-import { Nav } from "./nav/nav";
-import { NavDropdown } from "./nav/nav-dropdown";
 import { VerifiedIcon } from "./verified-icon";
 
 export async function Header() {
@@ -47,13 +45,8 @@ export async function Header() {
 
   return (
     <header className="relative mt-2">
-      <div className="screen-line-before flex h-12 items-center justify-end gap-4 border-x border-grid px-2">
-        <Nav className="max-sm:hidden" />
-
-        <div className="flex items-center gap-2">
-          <ToggleTheme />
-          <NavDropdown className="sm:hidden" />
-        </div>
+      <div className="screen-line-before flex h-12 items-center justify-end border-x border-grid px-2">
+        <ToggleTheme />
       </div>
 
       <ChanhDaiCoverHello initialCover={coverImage} initialPosition={coverPosition} />
