@@ -3,14 +3,21 @@
 import { useProfile } from "@/hooks/use-profile";
 import { cn } from "@/lib/cn";
 
-export function ChanhDaiCoverHello() {
+export function ChanhDaiCoverHello({
+  initialCover,
+  initialPosition,
+}: {
+  initialCover?: string;
+  initialPosition?: string;
+} = {}) {
   const { profile } = useProfile();
 
   const coverUrl =
     profile.coverImage ||
+    initialCover ||
     "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2000&auto=format&fit=crop";
 
-  const position = profile.coverPosition || "50%";
+  const position = profile.coverPosition || initialPosition || "50%";
   const objectPosition = position.includes("%") ? `center ${position}` : position;
 
   return (

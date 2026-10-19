@@ -13,10 +13,14 @@ export function ChanhDaiAvatar({
   className,
   size,
   priority = true,
+  initialAvatar,
+  displayName,
 }: {
   className?: string;
   size?: number;
   priority?: boolean;
+  initialAvatar?: string;
+  displayName?: string;
 }) {
   const { profile } = useProfile();
   const [isAdmin, setIsAdmin] = useState(false);
@@ -27,11 +31,18 @@ export function ChanhDaiAvatar({
     }
   }, []);
 
+  const activeAvatar =
+    profile.avatar && profile.avatar !== "/images/avatar.jpg"
+      ? profile.avatar
+      : initialAvatar || profile.avatar || "/images/avatar.jpg";
+
   const isCustomUrl =
-    profile.avatar &&
-    (profile.avatar.startsWith("data:") ||
-      profile.avatar.startsWith("http") ||
-      profile.avatar !== "/images/avatar.jpg");
+    activeAvatar &&
+    (activeAvatar.startsWith("data:") ||
+      activeAvatar.startsWith("http") ||
+      activeAvatar !== "/images/avatar.jpg");
+
+  const name = profile.displayName || displayName || "Architect";
 
   return (
     <div className="relative group inline-block">
@@ -39,15 +50,15 @@ export function ChanhDaiAvatar({
         // eslint-disable-next-line @next/next/no-img-element
         <img
           className={cn("object-cover aspect-square rounded-full", className)}
-          alt={`${profile.displayName}'s avatar`}
-          src={profile.avatar}
+          alt={`${name}'s avatar`}
+          src={activeAvatar}
           width={size}
           height={size}
         />
       ) : (
         <Image
           className={cn("object-cover aspect-square rounded-full", className)}
-          alt={`${profile.displayName}'s avatar`}
+          alt={`${name}'s avatar`}
           src={ImgAvatar}
           width={size}
           height={size}

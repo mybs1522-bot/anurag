@@ -14,6 +14,9 @@ export async function Header() {
   let displayName = USER.displayName;
   let bio = USER.bio;
   let flipSentences: string[] = [bio, ...USER.flipSentences];
+  let avatar: string | undefined = undefined;
+  let coverImage: string | undefined = undefined;
+  let coverPosition: string | undefined = undefined;
 
   try {
     const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || "tenant_demo";
@@ -23,6 +26,15 @@ export async function Header() {
     }
     if (data?.bio) {
       bio = data.bio;
+    }
+    if (data?.avatar) {
+      avatar = data.avatar;
+    }
+    if (data?.cover_image) {
+      coverImage = data.cover_image;
+    }
+    if (data?.cover_position) {
+      coverPosition = data.cover_position;
     }
     if (data?.flip_sentences && Array.isArray(data.flip_sentences) && data.flip_sentences.length > 0) {
       flipSentences = data.flip_sentences;
@@ -44,12 +56,16 @@ export async function Header() {
         </div>
       </div>
 
-      <ChanhDaiCoverHello />
+      <ChanhDaiCoverHello initialCover={coverImage} initialPosition={coverPosition} />
 
       <div className="screen-line-after flex border-x border-grid">
         <div className="relative shrink-0 border-r border-grid">
           <div className="mx-[2px] my-[3px]">
-            <ChanhDaiAvatar className="size-32 rounded-full ring-1 ring-border ring-offset-2 ring-offset-background sm:size-40" />
+            <ChanhDaiAvatar
+              initialAvatar={avatar}
+              displayName={displayName}
+              className="size-32 rounded-full ring-1 ring-border ring-offset-2 ring-offset-background sm:size-40"
+            />
           </div>
         </div>
 
