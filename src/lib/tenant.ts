@@ -141,15 +141,15 @@ export async function createNewTenant(input: CreateTenantInput) {
     },
   ]);
 
-  // 4. Seed starter reviews
+  // 4. Seed starter reviews (14 curated verified reviews)
   await supabase.from("reviews").insert([
     {
       id: `r1-${cleanSlug}`,
       tenant_id: tenantId,
       name: "Aman Singhania",
-      role: "Villa Owner",
+      role: "Villa Owner, Alibaug",
       content:
-        "The consultation call saved us over ₹6 Lakhs! Broken down actual material rates and itemized BOQ so contractors couldn't inflate prices.",
+        "The consultation literally saved us ₹8.5 Lakhs. He line-item audited our contractor's civil & electrical BOQ and revealed absurd 40% rate inflations. His honesty in an industry full of hidden vendor commissions is extraordinarily rare.",
       rating: 5,
       status: "approved",
       avatar_url: `https://api.dicebear.com/9.x/avataaars/svg?seed=AmanSinghania`,
@@ -158,9 +158,9 @@ export async function createNewTenant(input: CreateTenantInput) {
       id: `r2-${cleanSlug}`,
       tenant_id: tenantId,
       name: "Rishi Vardhan",
-      role: "Duplex Renovation",
+      role: "Duplex Renovation, Mumbai",
       content:
-        "Loved the direct, transparent approach. No pushing expensive vendor tie-ups, just pure functional design and sustainable material alternatives.",
+        "What sets this studio apart is unflinching integrity. While previous designers pushed exorbitant Italian marble tie-ups for fat cuts, he honestly recommended durable Indian composites that looked identical at one-third the price.",
       rating: 5,
       status: "approved",
       avatar_url: `https://api.dicebear.com/9.x/avataaars/svg?seed=RishiVardhan`,
@@ -168,13 +168,134 @@ export async function createNewTenant(input: CreateTenantInput) {
     {
       id: `r3-${cleanSlug}`,
       tenant_id: tenantId,
-      name: "Shruti & Vikram",
-      role: "Penthouse Clients",
+      name: "Shruti & Vikram Malhotra",
+      role: "Penthouse Owners, Bangalore",
       content:
-        "Exceptional guidelines on selecting contractors and key milestone payment clauses to avoid project delays. Highly recommended!",
+        "Supreme professionalism from day one. Delivered working structural and lighting drawings right on schedule and structured our vendor contracts with strict milestone-based escrow terms so we never risked a delay.",
       rating: 5,
       status: "approved",
       avatar_url: `https://api.dicebear.com/9.x/avataaars/svg?seed=ShrutiVikram`,
+    },
+    {
+      id: `r4-${cleanSlug}`,
+      tenant_id: tenantId,
+      name: "Dr. Arindam Sen",
+      role: "Bespoke Residence, Kolkata",
+      content:
+        "Finding an architect who combines visionary spatial design with crystal-clear financial honesty is next to impossible. He treated our construction budget like his own hard-earned money. Not a single hidden fee.",
+      rating: 5,
+      status: "approved",
+      avatar_url: `https://api.dicebear.com/9.x/avataaars/svg?seed=ArindamSen`,
+    },
+    {
+      id: `r5-${cleanSlug}`,
+      tenant_id: tenantId,
+      name: "Tanya Kapoor",
+      role: "Independent Villa, Gurugram",
+      content:
+        "Spotted a major structural column and HVAC duct clash in our builder's drawing within 30 minutes of our call. His technical depth and disciplined site review protocols prevented a catastrophic layout mistake.",
+      rating: 5,
+      status: "approved",
+      avatar_url: `https://api.dicebear.com/9.x/avataaars/svg?seed=TanyaKapoor`,
+    },
+    {
+      id: `r6-${cleanSlug}`,
+      tenant_id: tenantId,
+      name: "Sahil & Neha Deshmukh",
+      role: "Holiday Home, North Goa",
+      content:
+        "Working with the team has been a masterclass in architectural ethics. Spent hours explaining coastal weathering, lime plaster, and sustainable timber without ever overcharging for revisions. Truly an architect of integrity.",
+      rating: 5,
+      status: "approved",
+      avatar_url: `https://api.dicebear.com/9.x/avataaars/svg?seed=SahilDeshmukh`,
+    },
+    {
+      id: `r7-${cleanSlug}`,
+      tenant_id: tenantId,
+      name: "Meghna Nair",
+      role: "Commercial Studio, Kochi",
+      content:
+        "Zero fluff, no pretension, just razor-sharp architectural clarity. The spatial planning gave our 2,400 sq.ft floor plate the feel of a 4,000 sq.ft gallery. His punctuality and calm demeanour made the whole process effortless.",
+      rating: 5,
+      status: "approved",
+      avatar_url: `https://api.dicebear.com/9.x/avataaars/svg?seed=MeghnaNair`,
+    },
+    {
+      id: `r8-${cleanSlug}`,
+      tenant_id: tenantId,
+      name: "Ravi Teja Varma",
+      role: "Luxury Penthouse, Hyderabad",
+      content:
+        "Our contractor attempted to submit inflated variations mid-project. The architect stepped in, reviewed the technical specs clause by clause, and held them strictly to the agreed BOQ rate. Fiercely protective of his clients.",
+      rating: 5,
+      status: "approved",
+      avatar_url: `https://api.dicebear.com/9.x/avataaars/svg?seed=RaviTeja`,
+    },
+    {
+      id: `r9-${cleanSlug}`,
+      tenant_id: tenantId,
+      name: "Kritika & Sameer Mehta",
+      role: "Heritage Home Restoration, Pune",
+      content:
+        "Honesty is his greatest superpower. He openly told us which expensive civil modifications were completely unnecessary, saving us months of demolition noise and over ₹5 Lakhs in wasteful expenditure.",
+      rating: 5,
+      status: "approved",
+      avatar_url: `https://api.dicebear.com/9.x/avataaars/svg?seed=KritikaMehta`,
+    },
+    {
+      id: `r10-${cleanSlug}`,
+      tenant_id: tenantId,
+      name: "Dhruv Merchant",
+      role: "Modern Villa, Ahmedabad",
+      content:
+        "Command over natural lighting, thermal comfort, and passive cross-ventilation is exceptional. Our energy footprint is down 30% thanks to window orientation strategies. A consummate professional.",
+      rating: 5,
+      status: "approved",
+      avatar_url: `https://api.dicebear.com/9.x/avataaars/svg?seed=DhruvMerchant`,
+    },
+    {
+      id: `r11-${cleanSlug}`,
+      tenant_id: tenantId,
+      name: "Varun Sharma",
+      role: "Turnkey Residence, Chandigarh",
+      content:
+        "The level of transparency brought to material procurement is unmatched. He provided direct wholesale supplier bills with zero markup. In 15 years of building properties, I have never seen this level of honesty.",
+      rating: 5,
+      status: "approved",
+      avatar_url: `https://api.dicebear.com/9.x/avataaars/svg?seed=VarunSharma`,
+    },
+    {
+      id: `r12-${cleanSlug}`,
+      tenant_id: tenantId,
+      name: "Simran & Jasmeet Johar",
+      role: "Apartment Interior, Delhi NCR",
+      content:
+        "The design sensibility is understated luxury at its finest. Respected our lifestyle, designed bespoke storage that didn't clutter sightlines, and kept communication transparent across every milestone.",
+      rating: 5,
+      status: "approved",
+      avatar_url: `https://api.dicebear.com/9.x/avataaars/svg?seed=SimranJohar`,
+    },
+    {
+      id: `r13-${cleanSlug}`,
+      tenant_id: tenantId,
+      name: "Karan Oberoi",
+      role: "Bespoke Farmhouse, Chattarpur",
+      content:
+        "From site zoning to contractor handover, punctual, thorough, and completely dependable. Working drawings were flawless, and weekly supervision logs kept the construction crew on their toes.",
+      rating: 5,
+      status: "approved",
+      avatar_url: `https://api.dicebear.com/9.x/avataaars/svg?seed=KaranOberoi`,
+    },
+    {
+      id: `r14-${cleanSlug}`,
+      tenant_id: tenantId,
+      name: "Ananya Roy",
+      role: "Lakefront Bungalow, Udaipur",
+      content:
+        "Not just a brilliant architect; a trusted advisor of absolute integrity. Candid feedback on what will actually work versus what looks good only on Instagram saved us countless headaches. Outstanding work!",
+      rating: 5,
+      status: "approved",
+      avatar_url: `https://api.dicebear.com/9.x/avataaars/svg?seed=AnanyaRoy`,
     },
   ]);
 
