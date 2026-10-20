@@ -1,5 +1,4 @@
 import Image from "next/image";
-import Link from "next/link";
 import { USER } from "@/data/user";
 import { decodeEmail } from "@/utils/string";
 
@@ -10,7 +9,7 @@ export function Footer() {
     <footer className="screen-line-before border-x border-grid py-8 pb-[calc(2.5rem+env(safe-area-inset-bottom,0px))]">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 font-mono text-xs text-muted-foreground">
         <div>
-          <span>© {new Date().getFullYear()} {USER.displayName}. All rights reserved.</span>
+          <span>© {new Date().getFullYear()} Anurag M</span>
         </div>
 
         {/* Built by Connect */}
@@ -38,14 +37,7 @@ export function Footer() {
           </span>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Link
-            href="/refund-policy"
-            className="transition-colors hover:text-foreground underline underline-offset-4"
-          >
-            Refund Policy
-          </Link>
-          <span>•</span>
+        <div>
           <a
             href={`mailto:${email}`}
             className="transition-colors hover:text-foreground"
