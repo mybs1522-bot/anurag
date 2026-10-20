@@ -152,6 +152,7 @@ export default function BookDetailsPage() {
       try {
         await supabase.from("book_leads").insert({
           id: leadId,
+          tenant_id: process.env.NEXT_PUBLIC_TENANT_ID || "tenant_anurag",
           email: email.trim(),
           phone: phone.trim(),
           book_id: book.id,
@@ -245,6 +246,7 @@ export default function BookDetailsPage() {
       }
     } else {
       const { error } = await supabase.from("book_leads").insert({
+        tenant_id: process.env.NEXT_PUBLIC_TENANT_ID || "tenant_anurag",
         email: email.trim(),
         phone: phone.trim(),
         book_id: book.id,

@@ -29,7 +29,7 @@ export interface CreateTenantInput {
  * Returns active tenant ID from environment or fallback
  */
 export function getActiveTenantId(): string {
-  return process.env.NEXT_PUBLIC_TENANT_ID || "tenant_demo";
+  return process.env.NEXT_PUBLIC_TENANT_ID || "tenant_anurag";
 }
 
 /**

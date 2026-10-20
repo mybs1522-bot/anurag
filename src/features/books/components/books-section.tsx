@@ -14,9 +14,11 @@ export function BooksSection() {
 
   const fetchBooks = useCallback(async () => {
     setLoading(true);
+    const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || "tenant_anurag";
     const { data, error } = await supabase
       .from("books")
       .select("*")
+      .eq("tenant_id", tenantId)
       .eq("is_active", true)
       .order("display_order", { ascending: true });
 

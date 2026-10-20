@@ -17,9 +17,12 @@ export function QuickActions() {
   const [targetService, setTargetService] = useState<Service | null>(null);
 
   useEffect(() => {
+    const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || "tenant_anurag";
     supabase
       .from("services")
       .select("*")
+      .eq("tenant_id", tenantId)
+      .eq("is_active", true)
       .order("display_order", { ascending: true })
       .then(({ data }) => {
         const list = Array.isArray(data) ? data : [];

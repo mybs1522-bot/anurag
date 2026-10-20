@@ -4,10 +4,12 @@ import { Panel, PanelHeader, PanelTitle } from "../panel";
 import { ProjectsGallery } from "./projects-gallery";
 
 export async function Projects() {
+  const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || "tenant_anurag";
   // Fetch project images from Supabase
   const { data: images } = await supabase
     .from("project_images")
     .select("*")
+    .eq("tenant_id", tenantId)
     .order("created_at", { ascending: false });
 
   return (

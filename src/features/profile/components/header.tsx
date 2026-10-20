@@ -17,7 +17,7 @@ export async function Header() {
   let coverPosition: string | undefined = undefined;
 
   try {
-    const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || "tenant_demo";
+    const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || "tenant_anurag";
     const { data } = await supabase.from("profile").select("*").eq("tenant_id", tenantId).limit(1).single();
     if (data?.display_name || data?.displayName) {
       displayName = data.display_name || data.displayName;

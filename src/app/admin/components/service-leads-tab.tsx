@@ -181,6 +181,7 @@ export function ServiceLeadsTab() {
     } catch {}
 
     // Fallback to client Supabase
+    const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || "tenant_anurag";
     const { data, error } = await supabase
       .from("service_leads")
       .select(`
@@ -189,6 +190,7 @@ export function ServiceLeadsTab() {
           title
         )
       `)
+      .eq("tenant_id", tenantId)
       .order("created_at", { ascending: false });
 
     if (error) {

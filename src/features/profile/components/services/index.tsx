@@ -10,9 +10,11 @@ import { ServiceItem } from "./service-item";
 async function getServices(): Promise<Service[]> {
   try {
     const supabaseAdmin = getSupabaseAdmin();
+    const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || "tenant_anurag";
     const { data, error } = await supabaseAdmin
       .from("services")
       .select("*")
+      .eq("tenant_id", tenantId)
       .eq("is_active", true)
       .order("display_order", { ascending: true });
 

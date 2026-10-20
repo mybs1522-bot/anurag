@@ -9,7 +9,7 @@ export async function About() {
   let aboutText = USER.about;
 
   try {
-    const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || "tenant_demo";
+    const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || "tenant_anurag";
     const { data } = await supabase.from("profile").select("about").eq("tenant_id", tenantId).limit(1).single();
     if (data?.about) {
       aboutText = data.about;

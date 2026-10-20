@@ -591,9 +591,11 @@ export function InvoiceGeneratorTab() {
     setLeadsLoading(true);
     setLeadsDialogOpen(true);
     try {
+      const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || "tenant_anurag";
       const { data, error } = await supabase
         .from("service_leads")
         .select("*, services(title)")
+        .eq("tenant_id", tenantId)
         .order("created_at", { ascending: false })
         .limit(30);
 

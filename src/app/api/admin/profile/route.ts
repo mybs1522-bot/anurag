@@ -4,7 +4,7 @@ import { getSupabaseAdmin } from "@/lib/supabase";
 export async function GET() {
   try {
     const supabase = getSupabaseAdmin();
-    const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || "tenant_demo";
+    const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || "tenant_anurag";
 
     const { data, error } = await supabase
       .from("profile")
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const supabase = getSupabaseAdmin();
-    const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || "tenant_demo";
+    const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || "tenant_anurag";
 
     let avatarUrl = body.avatar || "";
 

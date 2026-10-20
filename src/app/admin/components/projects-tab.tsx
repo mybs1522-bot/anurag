@@ -36,9 +36,11 @@ export function ProjectsTab() {
 
   const fetchImages = async () => {
     setLoading(true);
+    const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || "tenant_anurag";
     const { data, error } = await supabase
       .from("project_images")
       .select("*")
+      .eq("tenant_id", tenantId)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -78,8 +80,10 @@ export function ProjectsTab() {
       .from("project-images")
       .getPublicUrl(filePath);
 
+    const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || "tenant_anurag";
     const { error: dbError } = await supabase.from("project_images").insert([
       {
+        tenant_id: tenantId,
         category: selectedCategory,
         image_url: publicUrlData.publicUrl,
       },
@@ -114,8 +118,10 @@ export function ProjectsTab() {
       finalUrl = `https://drive.google.com/uc?export=view&id=${match[1]}`;
     }
 
+    const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || "tenant_anurag";
     const { error: dbError } = await supabase.from("project_images").insert([
       {
+        tenant_id: tenantId,
         category: selectedCategory,
         image_url: finalUrl,
       },

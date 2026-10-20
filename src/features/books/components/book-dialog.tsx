@@ -60,6 +60,7 @@ export function BookDialog({
         // Save the lead immediately before payment as 'pending'
         await supabase.from("book_leads").insert({
           id: leadId,
+          tenant_id: process.env.NEXT_PUBLIC_TENANT_ID || "tenant_anurag",
           email: email.trim(),
           phone: phone.trim(),
           book_id: book.id,
@@ -140,6 +141,7 @@ export function BookDialog({
       }
     } else {
       const { error } = await supabase.from("book_leads").insert({
+        tenant_id: process.env.NEXT_PUBLIC_TENANT_ID || "tenant_anurag",
         email: email.trim(),
         phone: phone.trim(),
         book_id: book.id,

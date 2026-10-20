@@ -20,6 +20,7 @@ const memoryBlockedSlots = new Set<string>(); // "YYYY-MM-DD_HH:MM AM/PM"
 export async function GET() {
   try {
     const supabaseAdmin = getSupabaseAdmin();
+    const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || "tenant_anurag";
     const { data, error } = await supabaseAdmin
       .from("service_leads")
       .select(`
@@ -36,6 +37,7 @@ export async function GET() {
         )
       `)
       .not("appointment_date", "is", null)
+      .eq("tenant_id", tenantId)
       .not("appointment_time", "is", null)
       .order("created_at", { ascending: false });
 

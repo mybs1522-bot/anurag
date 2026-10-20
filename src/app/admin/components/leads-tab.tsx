@@ -28,6 +28,7 @@ export function LeadsTab() {
   const fetchLeads = useCallback(async () => {
     setLoading(true);
     // Fetch leads and join with books table to get the book title
+    const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || "tenant_anurag";
     const { data, error } = await supabase
       .from("book_leads")
       .select(`
@@ -36,6 +37,7 @@ export function LeadsTab() {
           title
         )
       `)
+      .eq("tenant_id", tenantId)
       .order("created_at", { ascending: false });
 
     if (error) {

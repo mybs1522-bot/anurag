@@ -4,9 +4,11 @@ import { getSupabaseAdmin } from "@/lib/supabase";
 export async function GET() {
   try {
     const supabase = getSupabaseAdmin();
+    const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || "tenant_anurag";
     const { data, error } = await supabase
       .from("reviews")
       .select("*")
+      .eq("tenant_id", tenantId)
       .order("created_at", { ascending: false });
 
     if (error) {

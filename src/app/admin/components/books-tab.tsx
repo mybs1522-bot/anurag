@@ -75,9 +75,11 @@ export function BooksTab() {
     setLoading(true);
 
     // 1. Fetch books
+    const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || "tenant_anurag";
     const { data: booksData, error: booksError } = await supabase
       .from("books")
       .select("*")
+      .eq("tenant_id", tenantId)
       .order("display_order", { ascending: true });
 
     if (booksError) {
@@ -507,6 +509,7 @@ function BookDialog({
     if (isEditing) {
       ({ error } = await supabase.from("books").update(payload).eq("id", book.id));
     } else {
+      payload.tenant_id = process.env.NEXT_PUBLIC_TENANT_ID || "tenant_anurag";
       ({ error } = await supabase.from("books").insert(payload));
     }
 

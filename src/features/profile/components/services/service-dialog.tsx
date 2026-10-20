@@ -225,6 +225,7 @@ export function ServiceDialog({
         // Save the lead immediately before payment as 'pending'
         await supabase.from("service_leads").insert({
           id: leadId,
+          tenant_id: process.env.NEXT_PUBLIC_TENANT_ID || "tenant_anurag",
           name: finalName,
           phone: fullPhone,
           service_id: service.id,
@@ -354,6 +355,7 @@ export function ServiceDialog({
       const leadId = crypto.randomUUID();
       const { error } = await supabase.from("service_leads").insert({
         id: leadId,
+        tenant_id: process.env.NEXT_PUBLIC_TENANT_ID || "tenant_anurag",
         name: finalName,
         phone: fullPhone,
         service_id: service.id,
