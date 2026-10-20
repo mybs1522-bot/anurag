@@ -124,7 +124,7 @@ Ensure all data access points filter strictly by `tenant_id`:
 
 ### Step 4: Hide Multi-Tenant Directory from the Architect
 An onboarded architect must **only see their own studio dashboard**:
-- Ensure [`src/app/admin/page.tsx`](file:///C:/Users/bhave/.gemini/antigravity/scratch/master-arch/src/app/admin/page.tsx) **does NOT include the "Tenants" tab**.
+- Ensure `src/app/admin/page.tsx` **does NOT include the "Tenants" tab**.
 - Delete or do not expose `src/app/admin/components/tenants-tab.tsx` and `src/app/api/admin/tenants`.
 - The architect's dashboard will display only:
   - **Profile**
@@ -140,11 +140,31 @@ An onboarded architect must **only see their own studio dashboard**:
 ---
 
 ### Step 5: Update Static / SSR Branding Fallback
-Update [`src/data/user.ts`](file:///C:/Users/bhave/.gemini/antigravity/scratch/master-arch/src/data/user.ts) with the architect's information (`displayName`, `bio`, `about`, `email`) so static pre-rendering and metadata match the architect before database hydration.
+Update `src/data/user.ts` with the architect's information (`displayName`, `bio`, `about`, `email`) so static pre-rendering and metadata match the architect before database hydration.
 
 ---
 
-### Step 6: Verification & Git Push
+### Step 6: "Built by Connect" Branding & Turbopack Configuration
+1. **Connect Logos**:
+   - `public/images/connect-logo-light.png` (dark logo for light mode)
+   - `public/images/connect-logo-dark.png` (white logo for dark mode)
+2. **Main Footer (`src/components/footer.tsx`) & Admin Footer (`src/app/admin/layout.tsx`)**:
+   Include subtle, impactful "Built by [Connect logo]" component toggling between light and dark versions:
+   ```tsx
+   <div className="flex items-center gap-1.5 font-sans opacity-90 hover:opacity-100">
+     <span className="text-[11px] font-medium tracking-tight text-muted-foreground/80">Built by</span>
+     <span className="inline-flex items-center">
+       <Image src="/images/connect-logo-light.png" alt="Connect" width={75} height={25} className="h-[15px] w-auto dark:hidden object-contain" />
+       <Image src="/images/connect-logo-dark.png" alt="Connect" width={75} height={25} className="h-[15px] w-auto hidden dark:inline-block object-contain" />
+     </span>
+   </div>
+   ```
+3. **Next.js Turbopack Optimization (`next.config.ts`)**:
+   Include `serverExternalPackages: ["googleapis"]` in `nextConfig` to avoid CommonJS Turbopack tracing issues.
+
+---
+
+### Step 7: Verification & Git Push
 1. Run `pnpm exec tsc --noEmit` to verify 0 TypeScript compilation errors.
 2. Run `pnpm build` to confirm static and server route generation passes.
 3. Push to the target repository:
