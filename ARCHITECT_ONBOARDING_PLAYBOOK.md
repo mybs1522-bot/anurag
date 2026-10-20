@@ -77,7 +77,7 @@ Run the provision script (or insert directly via PostgreSQL / Supabase client):
    - `serv-2-${slug}`: Turnkey Interior Layout & BOQ Rate Audit (₹4,999)
    - `serv-3-${slug}`: Complete Floor Plan & Vastu Alignment Review (₹2,999)
 4. **`reviews` table**:
-   - 3 approved verified client reviews seeded with `tenant_id = tenant_${slug}`.
+   - 14 approved verified client reviews seeded with `tenant_id = tenant_${slug}` focusing on architectural excellence, professionalism, punctuality, and financial honesty (line-item BOQ audits, no hidden contractor commissions).
 5. **`project_images` table**:
    - 12 curated architecture showcase photos (Villas, Offices, Living Rooms, Bedrooms) with `tenant_id = tenant_${slug}`.
 6. **`books` table**:
