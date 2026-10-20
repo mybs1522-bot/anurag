@@ -503,13 +503,13 @@ function BookDialog({
       pdf_url: form.pdf_url?.trim() || null,
       description: form.description?.trim() || null,
       preview_images: form.preview_images.filter(Boolean),
+      tenant_id: process.env.NEXT_PUBLIC_TENANT_ID || "tenant_anurag",
     };
 
     let error;
     if (isEditing) {
       ({ error } = await supabase.from("books").update(payload).eq("id", book.id));
     } else {
-      payload.tenant_id = process.env.NEXT_PUBLIC_TENANT_ID || "tenant_anurag";
       ({ error } = await supabase.from("books").insert(payload));
     }
 
